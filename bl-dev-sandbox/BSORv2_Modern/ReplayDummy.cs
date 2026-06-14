@@ -36,55 +36,53 @@ public static unsafe class ReplayDummy {
         var baseSections = (ushort)ReplaySectionKind.BuiltinSectionsCount;
         var tableSize = (ushort)(baseSections + 1); // +1 for the .text section
 
-        var headerSize = (ulong)sizeof(ReplayHeader);
-        var tableBytes = (ulong)tableSize * (ulong)sizeof(ReplaySectionsTableRow);
+        var headerSize = sizeof(ReplayHeader);
+        var tableBytes = tableSize * sizeof(ReplaySectionsTableRow);
 
-        var infoBlockSize = (ulong)sizeof(RawReplayInfo);
-        var framesBlockSize = (ulong)frameCount * (ulong)sizeof(ReplayFrame);
-        var notesBlockSize = (ulong)noteCount * (ulong)sizeof(ReplayNote);
-        var wallsBlockSize = (ulong)wallCount * (ulong)sizeof(ReplayWall);
-        var heightsBlockSize = (ulong)heightCount * (ulong)sizeof(ReplayHeight);
-        var pausesBlockSize = (ulong)pauseCount * (ulong)sizeof(ReplayPause);
+        var infoBlockSize = sizeof(RawReplayInfo);
+        var framesBlockSize = frameCount * sizeof(ReplayFrame);
+        var notesBlockSize = noteCount * sizeof(ReplayNote);
+        var wallsBlockSize = wallCount * sizeof(ReplayWall);
+        var heightsBlockSize = heightCount * sizeof(ReplayHeight);
+        var pausesBlockSize = pauseCount * sizeof(ReplayPause);
 
         // Compute memory footprint requirements for the raw string chunks (.text segment)
-        // UTF-8 strings take up length bytes + 1 null terminator byte.
-        // UTF-16 strings take up length * 2 bytes + 2 null terminator bytes.
-        ulong textBlockSize = 0;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(vStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(gStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(pUniqueStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(pIdStr) + 1;
-        textBlockSize += (ulong)Encoding.Unicode.GetByteCount(pNameStr) + 2; // UTF-16
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(platStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(trackStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(hmdStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(lCtrlStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(rCtrlStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(hashStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(modeStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(diffStr) + 1;
-        textBlockSize += (ulong)Encoding.Unicode.GetByteCount(songStr) + 2;   // UTF-16
-        textBlockSize += (ulong)Encoding.Unicode.GetByteCount(mapperStr) + 2; // UTF-16
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(envStr) + 1;
-        textBlockSize += (ulong)Encoding.UTF8.GetByteCount(modStr) + 1;
+        long textBlockSize = 0;
+        textBlockSize += Encoding.UTF8.GetByteCount(vStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(gStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(pUniqueStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(pIdStr) + 1;
+        textBlockSize += Encoding.Unicode.GetByteCount(pNameStr) + 2; // UTF-16
+        textBlockSize += Encoding.UTF8.GetByteCount(platStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(trackStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(hmdStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(lCtrlStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(rCtrlStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(hashStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(modeStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(diffStr) + 1;
+        textBlockSize += Encoding.Unicode.GetByteCount(songStr) + 2;   // UTF-16
+        textBlockSize += Encoding.Unicode.GetByteCount(mapperStr) + 2; // UTF-16
+        textBlockSize += Encoding.UTF8.GetByteCount(envStr) + 1;
+        textBlockSize += Encoding.UTF8.GetByteCount(modStr) + 1;
 
         // 2. Track linear storage positioning layout offsets
-        var currentOffset = headerSize + tableBytes;
+        var currentOffset = (uint)(headerSize + tableBytes);
 
         var infoOffset = currentOffset;
-        currentOffset += infoBlockSize;
+        currentOffset += (uint)infoBlockSize;
         var framesOffset = currentOffset;
-        currentOffset += framesBlockSize;
+        currentOffset += (uint)framesBlockSize;
         var notesOffset = currentOffset;
-        currentOffset += notesBlockSize;
+        currentOffset += (uint)notesBlockSize;
         var wallsOffset = currentOffset;
-        currentOffset += wallsBlockSize;
+        currentOffset += (uint)wallsBlockSize;
         var heightsOffset = currentOffset;
-        currentOffset += heightsBlockSize;
+        currentOffset += (uint)heightsBlockSize;
         var pausesOffset = currentOffset;
-        currentOffset += pausesBlockSize;
+        currentOffset += (uint)pausesBlockSize;
         var textOffset = currentOffset;
-        currentOffset += textBlockSize;
+        currentOffset += (uint)textBlockSize;
 
         // Allocate block space layout
         var totalBuffer = Marshal.AllocHGlobal((IntPtr)currentOffset);
@@ -99,44 +97,44 @@ public static unsafe class ReplayDummy {
         // 4. Populate rows inside the Table Map
         var rows = (ReplaySectionsTableRow*)(buffer + headerSize);
 
-        PopulateRow(&rows[0], (ulong)ReplaySectionKind.Info, infoOffset, infoBlockSize, (ulong)sizeof(RawReplayInfo), 1);
-        PopulateRow(&rows[1], (ulong)ReplaySectionKind.Frames, framesOffset, framesBlockSize, (ulong)sizeof(ReplayFrame), frameCount);
-        PopulateRow(&rows[2], (ulong)ReplaySectionKind.Notes, notesOffset, notesBlockSize, (ulong)sizeof(ReplayNote), noteCount);
-        PopulateRow(&rows[3], (ulong)ReplaySectionKind.Walls, wallsOffset, wallsBlockSize, (ulong)sizeof(ReplayWall), wallCount);
-        PopulateRow(&rows[4], (ulong)ReplaySectionKind.Heights, heightsOffset, heightsBlockSize, (ulong)sizeof(ReplayHeight), heightCount);
-        PopulateRow(&rows[5], (ulong)ReplaySectionKind.Pauses, pausesOffset, pausesBlockSize, (ulong)sizeof(ReplayPause), pauseCount);
+        PopulateRow(&rows[0], (ulong)ReplaySectionKind.Info, infoOffset, (uint)infoBlockSize, (uint)sizeof(RawReplayInfo), 1);
+        PopulateRow(&rows[1], (ulong)ReplaySectionKind.Frames, framesOffset, (uint)framesBlockSize, (uint)sizeof(ReplayFrame), frameCount);
+        PopulateRow(&rows[2], (ulong)ReplaySectionKind.Notes, notesOffset, (uint)notesBlockSize, (uint)sizeof(ReplayNote), noteCount);
+        PopulateRow(&rows[3], (ulong)ReplaySectionKind.Walls, wallsOffset, (uint)wallsBlockSize, (uint)sizeof(ReplayWall), wallCount);
+        PopulateRow(&rows[4], (ulong)ReplaySectionKind.Heights, heightsOffset, (uint)heightsBlockSize, (uint)sizeof(ReplayHeight), heightCount);
+        PopulateRow(&rows[5], (ulong)ReplaySectionKind.Pauses, pausesOffset, (uint)pausesBlockSize, (uint)sizeof(ReplayPause), pauseCount);
 
         // Custom .text layout registration (Casting ".text" into string table slot)
-        PopulateCustomRow(&rows[6], ".text", textOffset, textBlockSize, 1, 1);
+        PopulateCustomRow(&rows[6], ".text", textOffset, (uint)textBlockSize, 1, 1);
 
         // 5. Build and pack the .text string payload segment data
         var textWritePtr = buffer + textOffset;
+        var maxEndPtr = buffer + currentOffset;
 
         // This helper sequentially packs encoded bytes and returns relative buffer offsets
-        var infoVOffset = WriteUtf8(buffer, ref textWritePtr, vStr);
-        var infoGOffset = WriteUtf8(buffer, ref textWritePtr, gStr);
-        var infoPUniqueOffset = WriteUtf8(buffer, ref textWritePtr, pUniqueStr);
-        var infoPIdOffset = WriteUtf8(buffer, ref textWritePtr, pIdStr);
-        var infoPNameOffset = WriteUtf16(buffer, ref textWritePtr, pNameStr);
-        var infoPlatOffset = WriteUtf8(buffer, ref textWritePtr, platStr);
-        var infoTrackOffset = WriteUtf8(buffer, ref textWritePtr, trackStr);
-        var infoHmdOffset = WriteUtf8(buffer, ref textWritePtr, hmdStr);
-        var infoLCtrlOffset = WriteUtf8(buffer, ref textWritePtr, lCtrlStr);
-        var infoRCtrlOffset = WriteUtf8(buffer, ref textWritePtr, rCtrlStr);
-        var infoHashOffset = WriteUtf8(buffer, ref textWritePtr, hashStr);
-        var infoModeOffset = WriteUtf8(buffer, ref textWritePtr, modeStr);
-        var infoDiffOffset = WriteUtf8(buffer, ref textWritePtr, diffStr);
-        var infoSongOffset = WriteUtf16(buffer, ref textWritePtr, songStr);
-        var infoMapperOffset = WriteUtf16(buffer, ref textWritePtr, mapperStr);
-        var infoEnvOffset = WriteUtf8(buffer, ref textWritePtr, envStr);
-        var infoModOffset = WriteUtf8(buffer, ref textWritePtr, modStr);
+        var infoVOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, vStr);
+        var infoGOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, gStr);
+        var infoPUniqueOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, pUniqueStr);
+        var infoPIdOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, pIdStr);
+        var infoPNameOffset = WriteUtf16(buffer, ref textWritePtr, maxEndPtr, pNameStr);
+        var infoPlatOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, platStr);
+        var infoTrackOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, trackStr);
+        var infoHmdOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, hmdStr);
+        var infoLCtrlOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, lCtrlStr);
+        var infoRCtrlOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, rCtrlStr);
+        var infoHashOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, hashStr);
+        var infoModeOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, modeStr);
+        var infoDiffOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, diffStr);
+        var infoSongOffset = WriteUtf16(buffer, ref textWritePtr, maxEndPtr, songStr);
+        var infoMapperOffset = WriteUtf16(buffer, ref textWritePtr, maxEndPtr, mapperStr);
+        var infoEnvOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, envStr);
+        var infoModOffset = WriteUtf8(buffer, ref textWritePtr, maxEndPtr, modStr);
 
         // 6. Map offsets back to RawReplayInfo fields
         var rawInfo = (RawReplayInfo*)(buffer + infoOffset);
         rawInfo->OriginalVersion = header->Version;
 
         // Re-construct string structures manually using computed relative offsets
-        // (Assuming layout maps directly to a 4-byte or 8-byte offset representation field)
         *(uint*)&rawInfo->Version = infoVOffset;
         *(uint*)&rawInfo->GameVersion = infoGOffset;
         *(uint*)&rawInfo->PlayerUniqueId = infoPUniqueOffset;
@@ -161,7 +159,7 @@ public static unsafe class ReplayDummy {
         rawInfo->Score = 1250000;
         rawInfo->Timestamp = 1672531199;
 
-        // [Frame/Note/Wall/Height/Pause loops remain unchanged below]
+        // Frame data loops
         var frames = (ReplayFrame*)(buffer + framesOffset);
         for (uint i = 0; i < frameCount; i++) {
             frames[i].Time = i * 0.011f;
@@ -198,19 +196,21 @@ public static unsafe class ReplayDummy {
         return buffer;
     }
 
-    private static void PopulateRow(ReplaySectionsTableRow* row, ulong sectionId, ulong offset, ulong size, ulong itemSize, ulong itemCount) {
+    private static void PopulateRow(ReplaySectionsTableRow* row, ulong sectionId, uint offset, uint size, uint itemSize, uint itemCount) {
         row->SectionOffset = offset;
         row->SectionSize = size;
         row->ItemSize = itemSize;
         row->ItemCount = itemCount;
+        row->FirstItemOffset = offset; // Assuming tightly packed sequential records
         *(ulong*)row->Id = sectionId;
     }
 
-    private static void PopulateCustomRow(ReplaySectionsTableRow* row, string name, ulong offset, ulong size, ulong itemSize, ulong itemCount) {
+    private static void PopulateCustomRow(ReplaySectionsTableRow* row, string name, uint offset, uint size, uint itemSize, uint itemCount) {
         row->SectionOffset = offset;
         row->SectionSize = size;
         row->ItemSize = itemSize;
         row->ItemCount = itemCount;
+        row->FirstItemOffset = offset;
 
         // Write text string into custom section block row label identifier
         var nameSpan = name.AsSpan();
@@ -219,17 +219,21 @@ public static unsafe class ReplayDummy {
         Encoding.UTF8.GetBytes(nameSpan, new Span<byte>(idPtr, 64));
     }
 
-    private static uint WriteUtf8(byte* baseAddress, ref byte* currentPos, string text) {
+    private static uint WriteUtf8(byte* baseAddress, ref byte* currentPos, byte* maxEnd, string text) {
         var relativeOffset = (uint)(currentPos - baseAddress);
-        var written = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(currentPos, text.Length * 4));
+        var remainingBufferSpace = (int)(maxEnd - currentPos);
+        
+        var written = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(currentPos, remainingBufferSpace));
         currentPos[written] = 0; // Null-termination
         currentPos += written + 1;
         return relativeOffset;
     }
 
-    private static uint WriteUtf16(byte* baseAddress, ref byte* currentPos, string text) {
+    private static uint WriteUtf16(byte* baseAddress, ref byte* currentPos, byte* maxEnd, string text) {
         var relativeOffset = (uint)(currentPos - baseAddress);
-        var written = Encoding.Unicode.GetBytes(text.AsSpan(), new Span<byte>(currentPos, text.Length * 4));
+        var remainingBufferSpace = (int)(maxEnd - currentPos);
+
+        var written = Encoding.Unicode.GetBytes(text.AsSpan(), new Span<byte>(currentPos, remainingBufferSpace));
         currentPos[written] = 0;     // Null-termination byte 1
         currentPos[written + 1] = 0; // Null-termination byte 2
         currentPos += written + 2;
