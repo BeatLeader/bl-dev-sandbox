@@ -216,6 +216,7 @@ public static unsafe class ReplayDummy {
         var nameSpan = name.AsSpan();
         var idPtr = row->Id;
         
+        System.Runtime.CompilerServices.Unsafe.InitBlock(idPtr, 0, 64);
         Encoding.UTF8.GetBytes(nameSpan, new Span<byte>(idPtr, 64));
     }
 

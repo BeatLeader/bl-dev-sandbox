@@ -96,7 +96,7 @@ public static class ReplayDecoder {
         var sectionsRemainderPtr = buffer + sizeof(ReplayHeader) + skippedSections * sizeof(ReplaySectionsTableRow);
         var sectionsRemainder = tableSize - skippedSections;
 
-        var sectionsTable = new ReplaySectionsTable(sectionsRemainderPtr, (ushort)sectionsRemainder);
+        var sectionsTable = new ReplaySectionsTable(buffer, sectionsRemainderPtr, (ushort)sectionsRemainder);
 
         replay = new(
             header->Version,
