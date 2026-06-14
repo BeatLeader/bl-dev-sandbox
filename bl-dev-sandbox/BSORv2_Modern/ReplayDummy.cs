@@ -201,7 +201,7 @@ public static unsafe class ReplayDummy {
         row->SectionSize = size;
         row->ItemSize = itemSize;
         row->ItemCount = itemCount;
-        row->FirstItemOffset = offset; // Assuming tightly packed sequential records
+        row->FirstItemOffset = 0;
         *(ulong*)row->Id = sectionId;
     }
 
@@ -210,7 +210,7 @@ public static unsafe class ReplayDummy {
         row->SectionSize = size;
         row->ItemSize = itemSize;
         row->ItemCount = itemCount;
-        row->FirstItemOffset = offset;
+        row->FirstItemOffset = 0;
 
         // Write text string into custom section block row label identifier
         var nameSpan = name.AsSpan();
