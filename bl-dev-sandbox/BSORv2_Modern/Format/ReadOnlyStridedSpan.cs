@@ -8,12 +8,12 @@ namespace BsorV2;
 public readonly struct ReadOnlyStridedSpan<T> where T : unmanaged {
     private readonly unsafe byte* _ptr;
     private readonly uint _length;
-    private readonly ulong _stride;
+    private readonly uint _stride;
 
     public uint Length => _length;
     public bool IsEmpty => _length == 0;
 
-    public unsafe ReadOnlyStridedSpan(byte* ptr, uint length, ulong stride) {
+    public unsafe ReadOnlyStridedSpan(byte* ptr, uint length, uint stride) {
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
             throw new ArgumentException("Value cannot be a reference type", nameof(ptr));
         }
@@ -31,7 +31,7 @@ public readonly struct ReadOnlyStridedSpan<T> where T : unmanaged {
             }
 
             unsafe {
-                return ref Unsafe.AsRef<T>(_ptr + (ulong)index * _stride);
+                return ref Unsafe.AsRef<T>(_ptr + index * _stride);
             }
         }
     }

@@ -12,10 +12,11 @@ public struct ReplayHeader {
 [StructLayout(LayoutKind.Sequential)]
 public struct ReplaySectionsTableRow {
     public unsafe fixed byte Id[64];
-    public ulong SectionOffset;
-    public ulong SectionSize;
-    public ulong ItemSize;
-    public ulong ItemCount;
+    public uint SectionOffset;
+    public uint SectionSize;
+    public uint ItemSize;
+    public uint ItemCount;
+    public uint FirstItemOffset;
 }
 
 [StructLayout(LayoutKind.Sequential)]
