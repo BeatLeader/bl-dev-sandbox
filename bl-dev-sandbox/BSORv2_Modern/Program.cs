@@ -1,57 +1,40 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace BsorV2;
 
 static class Program {
-    public static unsafe void Main(string[] args) {
-        // Tests that all structures are aligned properly
-        // StructAlignmentTests.AlignsStructuresProperly();
+    public static void Main(string[] args) {
+        BenchmarkRunner.Run<ReplayDecoderBenchmark>();
+    }
+}
 
-        var ptr = ReplayDummy.Create(100000, 100000, 100000, 100000, 100000);
+[MemoryDiagnoser]
+[SimpleJob]
+[RPlotExporter]
+public unsafe class ReplayDecoderBenchmark {
+    private byte* _ptr;
 
-        const int iterations = 1000;
+    [Params(10, 500, 1000, 5000, 10000, 50000, 100000, 500000)]
+    public uint Size;
 
-        var minTicks = long.MaxValue;
-        var maxTicks = long.MinValue;
-        long totalTicks = 0;
+    [GlobalSetup]
+    public void Setup() {
+        _ptr = ReplayDummy.Create(Size, Size, Size, Size, Size);
+    }
 
-        Console.WriteLine($"Warming up and benchmarking {iterations} decodes...");
-
-        ReplayDecoder.TryDecode(ptr, out _);
-
-        // Run the benchmark loop
-        for (var i = 0; i < iterations; i++) {
-            var start = Stopwatch.GetTimestamp();
-
-            var result = ReplayDecoder.TryDecode(ptr, out var replay);
-
-            // Data can be read like this
-            //ref readonly var frame = ref replay!.Frames[10];
-
-            var end = Stopwatch.GetTimestamp();
-            var elapsedTicks = end - start;
-
-            if (result.Succeeded) {
-                if (elapsedTicks < minTicks) minTicks = elapsedTicks;
-                if (elapsedTicks > maxTicks) maxTicks = elapsedTicks;
-                totalTicks += elapsedTicks;
-            }
+    [GlobalCleanup]
+    public void Cleanup() {
+        if (_ptr != null) {
+            Marshal.FreeHGlobal((IntPtr)_ptr);
+            _ptr = null;
         }
+    }
 
-        // Convert the tracked high-resolution timestamp ticks to standard TimeSpans
-        var minTime = Stopwatch.GetElapsedTime(0, minTicks);
-        var maxTime = Stopwatch.GetElapsedTime(0, maxTicks);
-        var avgTime = Stopwatch.GetElapsedTime(0, totalTicks / iterations);
-
-        // Print results formatted clearly
-        Console.WriteLine("\n--- Benchmark Results ---");
-        Console.WriteLine($"Min Time: {minTime.TotalMilliseconds:F4} ms ({minTime})");
-        Console.WriteLine($"Max Time: {maxTime.TotalMilliseconds:F4} ms ({maxTime})");
-        Console.WriteLine($"Avg Time: {avgTime.TotalMilliseconds:F4} ms ({avgTime})");
-
-        // Clean up the native memory allocated by the dummy generator
-        Marshal.FreeHGlobal((IntPtr)ptr);
+    [Benchmark]
+    public bool DecodeReplay() {
+        var result = ReplayDecoder.TryDecode(_ptr, out _);
+        return result.Succeeded;
     }
 }
