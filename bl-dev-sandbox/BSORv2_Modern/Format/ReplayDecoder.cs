@@ -167,6 +167,6 @@ public static class ReplayDecoder {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe ReadOnlyStridedSpan<T> ToSpan<T>(byte* buffer, ReplaySectionsTableRow* row) where T : unmanaged {
-        return new(buffer + row->SectionOffset, (uint)row->ItemCount, row->ItemSize);
+        return new(buffer + row->SectionOffset + row->FirstItemOffset, row->ItemCount, row->ItemSize);
     }
 }
