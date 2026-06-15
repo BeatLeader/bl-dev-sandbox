@@ -16,7 +16,8 @@ public enum ReplaySectionKind : ulong {
     Notes = (ulong)'N' |
         (ulong)'O' << 8 |
         (ulong)'T' << 16 |
-        (ulong)'E' << 24,
+        (ulong)'E' << 24 |
+        (ulong)'S' << 32,
 
     Walls = (ulong)'W' |
         (ulong)'A' << 8 |
