@@ -24,8 +24,8 @@ public struct ReplayInfo {
     public required LazyString Mapper;
 
     public required int Score;
-    public required int Timestamp;
-    public required int TimestampEnd;
+    public required uint Timestamp;
+    public required uint TimestampEnd;
     public required float StartTime;
     public required float EndTime;
     public required int EndType;

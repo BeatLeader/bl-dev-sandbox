@@ -30,8 +30,8 @@ public struct RawReplayInfo {
     public RawUtf16String Mapper;
 
     public int Score;
-    public int Timestamp;
-    public int TimestampEnd;
+    public uint Timestamp;
+    public uint TimestampEnd;
     public float StartTime;
     public float EndTime;
     public int EndType;
