@@ -32,7 +32,7 @@ public static class ReplayDecoder {
             switch (id) {
                 case Info:
                     var infoPtr = (RawReplayInfo*)(buffer + row->SectionOffset);
-                    info = ToReplayInfo(buffer, infoPtr);
+                    info = ToReplayInfo(infoPtr);
                     break;
 
                 case Frames:
@@ -112,7 +112,9 @@ public static class ReplayDecoder {
         return Ok();
     }
 
-    private static unsafe ReplayInfo ToReplayInfo(byte* buffer, RawReplayInfo* rawInfo) {
+    private static unsafe ReplayInfo ToReplayInfo(RawReplayInfo* rawInfo) {
+        var buffer = (byte*)rawInfo;
+        
         return new() {
             OriginalVersion = rawInfo->OriginalVersion,
 

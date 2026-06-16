@@ -17,7 +17,7 @@ public struct ReplaySectionsTableRow {
     public uint ItemSize;
     public uint ItemCount;
     public uint FirstItemOffset;
-    public uint BlobSize;
+    public uint BlobOffset;
 }
 
 [StructLayout(LayoutKind.Sequential)]
